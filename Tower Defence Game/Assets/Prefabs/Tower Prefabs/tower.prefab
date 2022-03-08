@@ -97,6 +97,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6292adf320e92aa458c380e0247c7733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  aimCollider: {fileID: 2042565951873881212, guid: a1fc368fd99f87f4e9fd9c9c48bb65a6, type: 3}
+  placementBlocker: {fileID: 6037558631015005853, guid: f216aa1b924ce30498e7f943d822b052, type: 3}
 --- !u!120 &-8291250097935569405
 LineRenderer:
   m_ObjectHideFlags: 0

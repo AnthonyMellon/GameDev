@@ -15,7 +15,7 @@ public class ShipManager : MonoBehaviour
 
     public bool debug;
 
-    public static Vector3[] breadCrumbPositions;    
+    public static Vector3[] breadCrumbPositions;
 
     // Start is called before the first frame update
     void Start()
@@ -53,12 +53,18 @@ public class ShipManager : MonoBehaviour
         return myBreadCrumbPositions;
     }
 
+    public void spawnShip(float health, int armourLayers, float speed)
+    {
+        Instantiate(ship, breadCrumbPositions[0], new Quaternion(0, 0, 0, 0), shipManagerTransform);
+        transform.GetChild(transform.childCount - 1).GetComponent<ShipScript>().setup(health, armourLayers, speed);
+    }
+
     void debugSpawnShips() //Spawn in ships by pressing G
     {
         if (Input.GetKey(KeyCode.G))
         {
             Instantiate(ship, breadCrumbPositions[0], new Quaternion(0, 0, 0, 0), shipManagerTransform);
-            transform.GetChild(transform.childCount-1).GetComponent<ShipScript>().setup();
+            transform.GetChild(transform.childCount-1).GetComponent<ShipScript>().setup(1, 1, 0.1f);
         }
     }
 
@@ -67,7 +73,8 @@ public class ShipManager : MonoBehaviour
         for(int i = 0; i < shipManagerTransform.childCount; i++)
         {
             Transform currentShip = shipManagerTransform.GetChild(i);
-            currentShip.GetComponent<ShipScript>().ShipFunction();            
+            currentShip.GetComponent<ShipScript>().move();
+            currentShip.GetComponent<ShipScript>().checkDespawn();
         }
     }
 

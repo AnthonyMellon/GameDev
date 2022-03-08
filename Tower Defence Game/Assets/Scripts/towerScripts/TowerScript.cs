@@ -1,27 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TowerScript : MonoBehaviour
 {
-    private float aimRange = 1.5f; //How far the tower can reach (radius of a circle)
+    public float aimRange = 1.5f; //How far the tower can reach (radius of a circle)
     private float power = 1; //Amount of damage points per shot
-    private float speed = 10; //Amount of shots per second    
+    private float speed = 5; //Amount of shots per second    
     private float punchThrough = 1; //Layers of armour a shot can destroy before being destroyed
-    private float shotRange = 1.5f; //How far a shot can reach
+    private int upgradeCost = 25;
 
     private bool readyToShoot = true;
     private float timeSinceLastShot;
 
     private LineRenderer lineRenderer;
-    private CircleCollider2D targetCircle;
 
     private List<GameObject> shipsInRange = new List<GameObject>();
 
+    public GameObject aimCollider;
+    private Transform myAimCollider;
+    public GameObject placementBlocker;
+
     private void OnEnable()
     {
-        targetCircle = transform.GetComponent<CircleCollider2D>();
-        targetCircle.radius = aimRange;
+        Instantiate(aimCollider, transform);
+        myAimCollider = transform.Find("AimCollider(Clone)");
+        Instantiate(placementBlocker, transform);
+        transform.Find("placementBlocker(Clone)").GetComponent<CircleCollider2D>().radius = transform.GetComponent<CircleCollider2D>().radius * 2;
     }
 
     public void towerMainFunction() //To be called every update
@@ -29,18 +35,41 @@ public class TowerScript : MonoBehaviour
         if(readyToShoot == false)
         {
             reload();
-        }
+        }    
         
+        if(helperFunctions.inAreaCircle(TowerManager.mousePos, transform.position, 0.3f))
+        {
+            GameManager.currentUpgradeCost = upgradeCost;
+            if (Input.GetMouseButtonDown(0))
+            {
+                if(GameManager.numCoins >= upgradeCost)
+                {
+                    GameManager.numCoins -= upgradeCost;
+                    upgradeCost += upgradeCost / 4;
+                    aimRange += 0.1f;
+                    myAimCollider.GetComponent<CircleCollider2D>().radius = aimRange;
+                    power += 0.1f;
+                    speed += 0.5f;
+                }
+            }
+            else if (Input.GetMouseButtonDown(1))
+            {
+                print("Right Click");
+                TowerManager.towerPlaceable = true;
+                Destroy(gameObject);
+            }
+        }
+
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    public void addShip(GameObject ship)
     {
-        shipsInRange.Add(collision.gameObject);
+        shipsInRange.Add(ship);
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    public void removeShip(GameObject ship)
     {
-        shipsInRange.Remove(collision.gameObject);
+        shipsInRange.Remove(ship);
     }
 
     public void aim()
@@ -82,15 +111,9 @@ public class TowerScript : MonoBehaviour
     {
         lineRenderer = transform.GetComponent<LineRenderer>();
         lineRenderer.positionCount = 360;
-        for(int i = 0; i < lineRenderer.positionCount; i++)
-        {
-            float x = (aimRange * Mathf.Sin(i * Mathf.Deg2Rad)) + transform.position.x;
-            float y = (aimRange * Mathf.Cos(i * Mathf.Deg2Rad)) + transform.position.y;
-            float z = 0;
-
-            lineRenderer.SetPosition(i, new Vector3(x, y, z));
-        }                
+        lineRenderer.SetPositions(helperFunctions.pointsAlongCircle(360, aimRange, 0, transform.position.x, transform.position.y));
     }
+
 
     public void removeTargetArea()
     {

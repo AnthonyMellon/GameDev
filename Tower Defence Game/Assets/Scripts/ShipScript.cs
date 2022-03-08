@@ -9,19 +9,24 @@ public class ShipScript : MonoBehaviour
 
     private float speed = 0.1f; //How fast the ship moves
     private float health = 1; //How many hitpoints the ship has
-    private float armourLayers = 1; //The number of armour layers a ship has
+    private int armourLayers = 1; //The number of armour layers a ship has
 
     private GameObject audioManager;
     private AudioSource audioSource;
     public AudioClip deathSound;
 
-    void move() //Calculate ships movement and then move the ship
-    {              
+    private SpriteRenderer spriteRenderer;
+
+    public void move() //Calculate ships movement and then move the ship
+    {
+        //Move the ship
+        transform.Translate(0.1f, 0, 0);
+
         //Check if the ship has reached a breadcrumb
         targetPosition = ShipManager.breadCrumbPositions[targetBreadcrumb];
-        if (transform.position.x > targetPosition.x - speed && transform.position.x < targetPosition.x + speed)
+        if (transform.position.x > targetPosition.x - 0.1 && transform.position.x < targetPosition.x + 0.1)
         {
-            if (transform.position.y > targetPosition.y - speed && transform.position.y < targetPosition.y + speed)
+            if (transform.position.y > targetPosition.y - 0.1 && transform.position.y < targetPosition.y + 0.1)
             {
                 transform.position.Set(targetPosition.x, targetPosition.y, 0);
                 targetBreadcrumb++;
@@ -32,10 +37,7 @@ public class ShipScript : MonoBehaviour
                 
             }
 
-        }
-
-        //Move the ship
-        transform.Translate(0.1f, 0, 0);
+        }        
     }
 
     void rotate() //Calculate ships rotation then rotate the ship
@@ -54,9 +56,17 @@ public class ShipScript : MonoBehaviour
     public void reduceHealth(float damage)
     {
         health -= damage;
+        updateColour();
+        audioSource.PlayOneShot(deathSound, 0.5f);
+        GameManager.numCoins += 1;
     }
 
-    void checkDespawn() //Check to see if the ship should despawn
+    private void updateColour()
+    {        
+        spriteRenderer.color = new Color(health / 10, 1 - (health / 10), 0);
+    }
+
+    public void checkDespawn() //Check to see if the ship should despawn
     {
         if(targetBreadcrumb >= ShipManager.breadCrumbPositions.Length) //End of track
         {
@@ -65,25 +75,20 @@ public class ShipScript : MonoBehaviour
 
         if(health <= 0) //Death
         {
-            audioSource.PlayOneShot(deathSound, 0.5f);
             Destroy(gameObject);
         }
     }
 
-    public void setup()
-    {        
+    public void setup(float health, int armourLayers, float speed)
+    {
+        this.health = health;
+        this.armourLayers = armourLayers;
+        this.speed = speed;
+
         audioManager = GameObject.Find("World/AudioManager");
         audioSource = audioManager.transform.GetComponent<AudioSource>();
-    }
+        spriteRenderer = transform.GetComponent<SpriteRenderer>();
+        updateColour();
 
-    public void ShipFunction() //Main function call of the ship
-    {             
-        move();
-        checkDespawn();
-    }
-
-    public Vector2 getShipPosition()
-    {
-        return transform.position;
     }
 }
